@@ -92,3 +92,35 @@ export const delSysHistory = (data) => {
     data
   })
 }
+
+export const createPackageApi = (data) => {
+  return service({
+    url: '/autoCode/createPackage',
+    method: 'post',
+    data
+  })
+}
+
+export const getPackageApi = () => {
+  return service({
+    url: '/autoCode/getPackage',
+    method: 'post'
+  })
+}
+
+export const deletePackageApi = (data) => {
+  return service({
+    url: '/autoCode/delPackage',
+    method: 'post',
+    data
+  })
+}
+
+export const createPlugApi = (data) => {
+  return service({
+    url: '/autoCode/createPlug',
+    method: 'post',
+    data
+  })
+}
+

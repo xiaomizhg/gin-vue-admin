@@ -177,6 +177,9 @@ const isSame = (route1, route2) => {
   if (route1.name !== route2.name) {
     return false
   }
+  if (Object.keys(route1.query).length !== Object.keys(route2.query).length || Object.keys(route1.params).length !== Object.keys(route2.params).length) {
+    return false
+  }
   for (const key in route1.query) {
     if (route1.query[key] !== route2.query[key]) {
       return false
@@ -193,9 +196,11 @@ const setTab = (route) => {
   if (!historys.value.some((item) => isSame(item, route))) {
     const obj = {}
     obj.name = route.name
-    obj.meta = route.meta
+    obj.meta = { ...route.meta }
+    delete obj.meta.matched
     obj.query = route.query
     obj.params = route.params
+    console.log(obj)
     historys.value.push(obj)
   }
   window.sessionStorage.setItem('activeValue', getFmtString(route))
@@ -234,7 +239,7 @@ const removeTab = (tab) => {
   historys.value.splice(index, 1)
 }
 
-watch(contextMenuVisible, () => {
+watch(() => contextMenuVisible.value, () => {
   if (contextMenuVisible.value) {
     document.body.addEventListener('click', () => {
       contextMenuVisible.value = false
@@ -246,17 +251,20 @@ watch(contextMenuVisible, () => {
   }
 })
 
-watch(route, (to, now) => {
-  if (to.name === 'Login') {
+watch(() => route, (to, now) => {
+  if (to.name === 'Login' || to.name === 'Reload') {
     return
   }
   historys.value = historys.value.filter((item) => !item.meta.closeTab)
   setTab(to)
   sessionStorage.setItem('historys', JSON.stringify(historys.value))
   activeValue.value = window.sessionStorage.getItem('activeValue')
-  if (now && to && now.name === to.name) {
-    emitter.emit('reload')
-  }
+}, { deep: true })
+
+watch(() => historys.value, () => {
+  sessionStorage.setItem('historys', JSON.stringify(historys.value))
+}, {
+  deep: true
 })
 
 const initPage = () => {

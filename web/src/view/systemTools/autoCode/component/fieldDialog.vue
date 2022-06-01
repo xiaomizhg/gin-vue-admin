@@ -30,6 +30,7 @@
           style="width:100%"
           placeholder="请选择field数据类型"
           clearable
+          @change="clearOther"
         >
           <el-option
             v-for="item in typeOptions"
@@ -39,7 +40,7 @@
           />
         </el-select>
       </el-form-item>
-      <el-form-item label="类型长度" prop="dataTypeLong">
+      <el-form-item :label="middleDate.fieldType === 'enum' ? '枚举值' : '类型长度'" prop="dataTypeLong">
         <el-input v-model="middleDate.dataTypeLong" placeholder="数据库类型长度" />
       </el-form-item>
       <el-form-item label="Field查询条件" prop="fieldSearchType">
@@ -54,6 +55,7 @@
             :key="item.value"
             :label="item.label"
             :value="item.value"
+            :disabled="middleDate.fieldType!=='string'&&item.value==='LIKE'"
           />
         </el-select>
       </el-form-item>
@@ -138,6 +140,10 @@ const typeOptions = ref([
   {
     label: '时间',
     value: 'time.Time'
+  },
+  {
+    label: '枚举',
+    value: 'enum'
   }
 ])
 const rules = ref({
@@ -172,6 +178,11 @@ init()
 const autoFill = () => {
   middleDate.value.fieldJson = toLowerCase(middleDate.value.fieldName)
   middleDate.value.columnName = toSQLLine(middleDate.value.fieldJson)
+}
+
+const clearOther = () => {
+  middleDate.value.fieldSearchType = ''
+  middleDate.value.dictType = ''
 }
 
 const fieldDialogFrom = ref(null)

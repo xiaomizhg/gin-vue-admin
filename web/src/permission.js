@@ -36,6 +36,7 @@ async function handleKeepAlive(to) {
 
 router.beforeEach(async(to, from, next) => {
   const userStore = useUserStore()
+  to.meta.matched = [...to.matched]
   handleKeepAlive(to)
   const token = userStore.token
   // 在白名单中的判断情况
@@ -57,7 +58,14 @@ router.beforeEach(async(to, from, next) => {
       if (!asyncRouterFlag && whiteList.indexOf(from.name) < 0) {
         asyncRouterFlag++
         await getRouter(userStore)
-        next({ ...to, replace: true })
+        if (userStore.token) {
+          next({ ...to, replace: true })
+        } else {
+          next({
+            name: 'Login',
+            query: { redirect: to.href }
+          })
+        }
       } else {
         if (to.matched.length) {
           next()

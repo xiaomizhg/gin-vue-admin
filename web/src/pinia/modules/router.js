@@ -12,6 +12,7 @@ const formatRouter = (routes, routeMap) => {
     if ((!item.children || item.children.every(ch => ch.hidden)) && item.name !== '404' && !item.hidden) {
       routerListArr.push({ label: item.meta.title, value: item.name })
     }
+    item.meta.btns = item.btns
     item.meta.hidden = item.hidden
     routeMap[item.name] = item
     if (item.children && item.children.length > 0) {
@@ -50,14 +51,24 @@ export const useRouterStore = defineStore('router', () => {
     }]
     const asyncRouterRes = await asyncMenu()
     const asyncRouter = asyncRouterRes.data.menus
-    asyncRouter.push({
+    asyncRouter && asyncRouter.push({
       path: '404',
       name: '404',
       hidden: true,
       meta: {
         title: '迷路了*。*',
+        closeTab: true,
       },
       component: 'view/error/index.vue'
+    }, {
+      path: 'reload',
+      name: 'Reload',
+      hidden: true,
+      meta: {
+        title: '',
+        closeTab: true,
+      },
+      component: 'view/error/reload.vue'
     })
     formatRouter(asyncRouter, routeMap)
     baseRouter[0].children = asyncRouter

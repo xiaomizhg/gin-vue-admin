@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"bytes"
 	"io/ioutil"
 	"strconv"
 	"time"
@@ -25,13 +26,15 @@ func ErrorToEmail() gin.HandlerFunc {
 			username = claims.Username
 		} else {
 			id, _ := strconv.Atoi(c.Request.Header.Get("x-user-id"))
-			err, user := userService.FindUserById(id)
+			user, err := userService.FindUserById(id)
 			if err != nil {
 				username = "Unknown"
 			}
 			username = user.Username
 		}
 		body, _ := ioutil.ReadAll(c.Request.Body)
+		// 再重新写回请求体body中，ioutil.ReadAll会清空c.Request.Body中的数据
+		c.Request.Body = ioutil.NopCloser(bytes.NewBuffer(body))
 		record := system.SysOperationRecord{
 			Ip:     c.ClientIP(),
 			Method: c.Request.Method,

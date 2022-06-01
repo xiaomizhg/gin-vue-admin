@@ -4,9 +4,10 @@ import (
 	"github.com/flipped-aurora/gin-vue-admin/server/global"
 	"github.com/flipped-aurora/gin-vue-admin/server/model/common/response"
 	"github.com/flipped-aurora/gin-vue-admin/server/model/example"
-	"github.com/flipped-aurora/gin-vue-admin/server/utils"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
+	"os"
+	"strings"
 )
 
 type ExcelApi struct{}
@@ -27,6 +28,10 @@ type ExcelApi struct{}
 func (e *ExcelApi) ExportExcel(c *gin.Context) {
 	var excelInfo example.ExcelInfo
 	_ = c.ShouldBindJSON(&excelInfo)
+	if strings.Index(excelInfo.FileName, "..") > -1 {
+		response.FailWithMessage("包含非法字符", c)
+		return
+	}
 	filePath := global.GVA_CONFIG.Excel.Dir + excelInfo.FileName
 	err := excelService.ParseInfoList2Excel(excelInfo.InfoList, filePath)
 	if err != nil {
@@ -89,10 +94,16 @@ func (e *ExcelApi) LoadExcel(c *gin.Context) {
 func (e *ExcelApi) DownloadTemplate(c *gin.Context) {
 	fileName := c.Query("fileName")
 	filePath := global.GVA_CONFIG.Excel.Dir + fileName
-	ok, err := utils.PathExists(filePath)
-	if !ok || err != nil {
+
+	fi, err := os.Stat(filePath)
+	if err != nil {
 		global.GVA_LOG.Error("文件不存在!", zap.Error(err))
 		response.FailWithMessage("文件不存在", c)
+		return
+	}
+	if fi.IsDir() {
+		global.GVA_LOG.Error("不支持下载文件夹!", zap.Error(err))
+		response.FailWithMessage("不支持下载文件夹", c)
 		return
 	}
 	c.Writer.Header().Add("success", "true")
